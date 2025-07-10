@@ -293,6 +293,11 @@
             loadBtn.textContent = 'Loading...';
             
             try {
+                // Wait 10 seconds first
+                showStatus('Waiting 10 seconds before loading data...', 'loading');
+                await new Promise(resolve => setTimeout(resolve, 10000));
+                
+                // Then call the API
                 showStatus('Loading data from API...', 'loading');
                 
                 const controller = new AbortController();
@@ -315,16 +320,10 @@
                 const data = await response.json();
                 originalData = { ...data };
                 
-                // Wait 10 seconds before showing the form data
-                setTimeout(() => {
-                    // Populate form fields
-                    populateForm(data);
-                    
-                    // Show the form
-                    document.getElementById('dataForm').style.display = 'block';
-                    
-                    showStatus('Data loaded successfully! You can now edit the fields.', 'success');
-                }, 10000);
+                // Immediately show the form data
+                populateForm(data);
+                document.getElementById('dataForm').style.display = 'block';
+                showStatus('Data loaded successfully! You can now edit the fields.', 'success');
                 
             } catch (error) {
                 if (error.name === 'AbortError') {
