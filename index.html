@@ -293,9 +293,9 @@
             loadBtn.textContent = 'Loading...';
             
             try {
-                // Wait 10 seconds first
-                showStatus('Waiting 10 seconds before loading data...', 'loading');
-                await new Promise(resolve => setTimeout(resolve, 10000));
+                // Wait 20 seconds first
+                showStatus('Waiting 20 seconds before loading data...', 'loading');
+                await new Promise(resolve => setTimeout(resolve, 20000));
                 
                 // Then call the API
                 showStatus('Loading data from API...', 'loading');
