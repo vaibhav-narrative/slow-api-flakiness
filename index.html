@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP Geolocation Data Editor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            background-color: white;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            background-color: #007bff;
+            color: white;
+            padding: 15px 30px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            flex: 1;
+            padding: 20px 30px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .form-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            flex: 1;
+            margin-bottom: 20px;
+        }
+        .form-row {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-row label {
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        .form-row input {
+            padding: 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        .form-row input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-shrink: 0;
+            padding: 15px 0;
+        }
+        .btn {
+            padding: 10px 25px;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-success:hover {
+            background-color: #1e7e34;
+        }
+        .btn:disabled {
+            background-color: #e0e0e0;
+            color: #999;
+            cursor: not-allowed;
+        }
+        .status {
+            text-align: center;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .status.loading {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .hidden {
+            display: none;
+        }
+        .page {
+            display: none;
+            height: 100%;
+        }
+        .page.active {
+            display: flex;
+            flex-direction: column;
+        }
+        .success-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            height: 100%;
+        }
+        .success-icon {
+            font-size: 48px;
+            color: #28a745;
+            margin-bottom: 20px;
+        }
+        .success-message {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .success-details {
+            color: #666;
+            margin-bottom: 30px;
+            max-width: 500px;
+        }
+    </style>
+</head>
+  <body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>IP Geolocation Data Editor</h1>
+        </div>
+
+        <!-- Main Form Page -->
+        <div id="formPage" class="page active">
+            <div class="content">
+                <div class="buttons">
+                    <button class="btn btn-primary" id="loadDataBtn" onclick="loadAPIData()">Load API Data</button>
+                </div>
+
+                <div id="statusMessage" class="status hidden"></div>
+
+                <div class="form-section" id="dataForm" style="display: none;">
+                    <h3 style="margin: 0 0 15px 0; color: #333;">Edit Location Data</h3>
+                    
+                    <div class="form-grid">
+                        <div class="form-row">
+                            <label for="ip">IP Address:</label>
+                            <input type="text" id="ip" name="ip" placeholder="Enter IP address">
+                        </div>
+                        
+                        <div class="form-row">
+                            <label for="country_code">Country Code:</label>
+                            <input type="text" id="country_code" name="country_code" placeholder="e.g., IN, US">
+                        </div>
+                        
+                        <div class="form-row">
+                            <label for="country_name">Country Name:</label>
+                            <input type="text" id="country_name" name="country_name" placeholder="e.g., India, United States">
+                        </div>
+                        
+                        <div class="form-row">
+                            <label for="region_code">Region Code:</label>
+                            <input type="text" id="region_code" name="region_code" placeholder="e.g., IN-RJ, US-CA">
+                        </div>
+                        
+                        <div class="form-row">
+                            <label for="region_name">Region Name:</label>
+                            <input type="text" id="region_name" name="region_name" placeholder="e.g., Rajasthan, California">
+                        </div>
+                        
+                        <div class="form-row">
+                            <label for="city">City:</label>
+                            <input type="text" id="city" name="city" placeholder="e.g., Jaipur, San Francisco">
+                        </div>
+                        
+                        <div class="form-row">
+                            <label for="zip_code">Zip Code:</label>
+                            <input type="text" id="zip_code" name="zip_code" placeholder="e.g., 303012, 94105">
+                        </div>
+                        
+                        <div class="form-row">
+                            <label for="time_zone">Time Zone:</label>
+                            <input type="text" id="time_zone" name="time_zone" placeholder="e.g., Asia/Kolkata, America/New_York">
+                        </div>
+                        
+                        <div class="form-row">
+                            <label for="latitude">Latitude:</label>
+                            <input type="number" id="latitude" name="latitude" step="any" placeholder="e.g., 26.916765213012695">
+                        </div>
+                        
+                        <div class="form-row">
+                            <label for="longitude">Longitude:</label>
+                            <input type="number" id="longitude" name="longitude" step="any" placeholder="e.g., 75.81674194335938">
+                        </div>
+                        
+                        <div class="form-row">
+                            <label for="metro_code">Metro Code:</label>
+                            <input type="number" id="metro_code" name="metro_code" placeholder="e.g., 0, 807">
+                        </div>
+                    </div>
+
+                    <div class="buttons">
+                        <button class="btn btn-success" onclick="submitData()">Submit Data</button>
+                        <button class="btn btn-secondary" onclick="resetForm()">Reset Form</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Page -->
+        <div id="successPage" class="page">
+            <div class="content success-page">
+                <div class="success-icon">✅</div>
+                <div class="success-message">Form Submitted Successfully!</div>
+                <div class="success-details">
+                    Your location data has been processed and submitted to the system.
+                </div>
+                <div class="buttons">
+                    <button class="btn btn-primary" onclick="goBackToForm()">Submit Another Form</button>
+                    <button class="btn btn-secondary" onclick="viewSubmittedData()">View Submitted Data</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let originalData = null;
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.classList.remove('hidden');
+        }
+
+        function hideStatus() {
+            document.getElementById('statusMessage').classList.add('hidden');
+        }
+
+        async function loadAPIData() {
+            const loadBtn = document.getElementById('loadDataBtn');
+            loadBtn.disabled = true;
+            loadBtn.textContent = 'Loading...';
+            
+            try {
+                showStatus('Loading data from API...', 'loading');
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                
+                const response = await fetch('https://api.ipbase.com/v1/json/', {
+                    signal: controller.signal,
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                    }
+                });
+                
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                originalData = { ...data };
+                
+                // Wait 10 seconds before showing the form data
+                setTimeout(() => {
+                    // Populate form fields
+                    populateForm(data);
+                    
+                    // Show the form
+                    document.getElementById('dataForm').style.display = 'block';
+                    
+                    showStatus('Data loaded successfully! You can now edit the fields.', 'success');
+                }, 10000);
+                
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    showStatus('Request timeout - API took longer than 10 seconds', 'error');
+                } else {
+                    showStatus(`Error loading data: ${error.message}`, 'error');
+                }
+            } finally {
+                loadBtn.disabled = false;
+                loadBtn.textContent = 'Reload API Data';
+            }
+        }
+
+        function populateForm(data) {
+            const fields = [
+                'ip', 'country_code', 'country_name', 'region_code', 
+                'region_name', 'city', 'zip_code', 'time_zone', 
+                'latitude', 'longitude', 'metro_code'
+            ];
+            
+            fields.forEach(field => {
+                const element = document.getElementById(field);
+                if (element && data[field] !== undefined) {
+                    element.value = data[field];
+                }
+            });
+        }
+
+        function getFormData() {
+            const data = {};
+            const fields = [
+                'ip', 'country_code', 'country_name', 'region_code', 
+                'region_name', 'city', 'zip_code', 'time_zone', 
+                'latitude', 'longitude', 'metro_code'
+            ];
+            
+            fields.forEach(field => {
+                const element = document.getElementById(field);
+                if (element) {
+                    let value = element.value.trim();
+                    
+                    // Convert numeric fields
+                    if (field === 'latitude' || field === 'longitude') {
+                        value = value ? parseFloat(value) : 0;
+                    } else if (field === 'metro_code') {
+                        value = value ? parseInt(value) : 0;
+                    }
+                    
+                    data[field] = value;
+                }
+            });
+            
+            return data;
+        }
+
+        function submitData() {
+            const formData = getFormData();
+            
+            // Validate required fields
+            if (!formData.ip || !formData.country_code || !formData.country_name) {
+                showStatus('Please fill in at least IP, Country Code, and Country Name fields', 'error');
+                return;
+            }
+            
+            // Simulate API submission (you can replace this with actual API call)
+            showStatus('Submitting data...', 'loading');
+            
+            setTimeout(() => {
+                console.log('Submitted Data:', JSON.stringify(formData, null, 2));
+                
+                // Store submitted data for viewing
+                sessionStorage.setItem('submittedData', JSON.stringify(formData, null, 2));
+                
+                // Navigate to success page
+                showSuccessPage();
+                
+                // Here you would typically make an API call to submit the data
+                // Example:
+                // submitToAPI(formData);
+            }, 1000);
+        }
+
+        function showSuccessPage() {
+            document.getElementById('formPage').classList.remove('active');
+            document.getElementById('successPage').classList.add('active');
+        }
+
+        function goBackToForm() {
+            document.getElementById('successPage').classList.remove('active');
+            document.getElementById('formPage').classList.add('active');
+            
+            // Reset form to show load button again
+            document.getElementById('dataForm').style.display = 'none';
+            document.getElementById('loadDataBtn').style.display = 'block';
+            hideStatus();
+        }
+
+        function viewSubmittedData() {
+            const submittedData = sessionStorage.getItem('submittedData');
+            if (submittedData) {
+                alert('Submitted Data:\n\n' + submittedData);
+            } else {
+                alert('No submitted data found.');
+            }
+        }
+
+        function resetForm() {
+            if (originalData) {
+                populateForm(originalData);
+                showStatus('Form reset to original API data', 'success');
+            } else {
+                // Clear all fields
+                const inputs = document.querySelectorAll('#dataForm input');
+                inputs.forEach(input => input.value = '');
+                showStatus('Form cleared', 'success');
+            }
+        }
+
+        // Optional: Function to submit data to an API endpoint
+        async function submitToAPI(data) {
+            try {
+                const response = await fetch('/api/location', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                showStatus('Data submitted to API successfully!', 'success');
+                return result;
+            } catch (error) {
+                showStatus(`Error submitting data: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+    </script>
+</body>
+</html> 
